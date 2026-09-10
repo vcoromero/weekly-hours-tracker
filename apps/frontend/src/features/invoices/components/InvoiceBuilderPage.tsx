@@ -93,11 +93,11 @@ export function InvoiceBuilderPage() {
           <Skeleton className="h-8 w-48 mb-2" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <Card>
+        <Card className="py-2">
           <CardHeader className="pb-4">
             <Skeleton className="h-4 w-24" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="py-2 px-3">
             <Skeleton className="h-10 w-full" />
           </CardContent>
         </Card>
@@ -123,11 +123,11 @@ export function InvoiceBuilderPage() {
         </p>
       </div>
 
-      <Card>
+      <Card className="py-2">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Trabajador</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="py-2 px-3">
           <select
             value={selectedWorkerId}
             onChange={(e) => {
@@ -149,11 +149,11 @@ export function InvoiceBuilderPage() {
       {selectedWorkerId && (
         <>
           {loadingDashboard ? (
-            <Card>
+            <Card className="py-2">
               <CardHeader className="pb-4">
                 <Skeleton className="h-4 w-40" />
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="py-2 px-3 space-y-2">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="flex items-center justify-between p-3 rounded-lg border">
                     <div className="space-y-1">
@@ -172,7 +172,7 @@ export function InvoiceBuilderPage() {
               </CardContent>
             </Card>
           ) : (
-            <Card>
+            <Card className="py-2">
               <CardHeader className="pb-4">
                 <CardTitle className="text-base">
                   Semanas elegibles ({eligibleWeeks.length})
@@ -181,7 +181,7 @@ export function InvoiceBuilderPage() {
                   Máx. 2 semanas por factura
                 </p>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="py-2 px-3 space-y-2">
                 {eligibleWeeks.map((week) => {
                   const isSelected = selectedWeekIds.includes(week.weekId);
                   const isDisabled =
@@ -220,11 +220,11 @@ export function InvoiceBuilderPage() {
           )}
 
           {selectedWeekIds.length > 0 && (
-            <Card>
+            <Card className="py-2">
               <CardHeader className="pb-4">
                 <CardTitle className="text-base">Resumen</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="py-2 px-3 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Semanas:</span>
                   <span className="font-medium">{summary.count}</span>

@@ -129,8 +129,8 @@ export function WorkerWeekDetailPage() {
       </Card>
 
       {workerTotal && (
-        <Card className="bg-primary/5">
-          <CardContent className="p-4">
+        <Card className="py-2 bg-primary/5">
+          <CardContent className="py-2 px-3">
             <div className="flex items-center justify-between text-lg font-bold">
               <span>Total de {workerTotal.workerName}</span>
               <span className="text-primary">
