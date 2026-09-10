@@ -148,45 +148,45 @@ export function WorkerDashboardPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="py-2">
+          <CardHeader className="pb-1">
             <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
               <Clock className="h-3 w-3" /> Total horas
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="py-1 px-3">
             <p className="text-xl font-bold">{stats.totalHours}h</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="py-2">
+          <CardHeader className="pb-1">
             <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
               <DollarSign className="h-3 w-3" /> Ganancias
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="py-1 px-3">
             <p className="text-xl font-bold">
               {formatCurrency(stats.totalEarnings)}
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="py-2">
+          <CardHeader className="pb-1">
             <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
               <Calendar className="h-3 w-3" /> Semanas
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="py-1 px-3">
             <p className="text-xl font-bold">{stats.weeksActive}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="py-2">
+          <CardHeader className="pb-1">
             <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
               <Hash className="h-3 w-3" /> Prom. costo/h
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="py-1 px-3">
             <p className="text-xl font-bold">
               {formatCurrency(stats.averageHourlyRate)}
             </p>
@@ -223,11 +223,11 @@ export function WorkerDashboardPage() {
           <p className="text-muted-foreground text-sm">Sin registros</p>
         )}
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-4">
           {weeks.map((week) => (
-            <Link key={week.weekId} to={`/workers/${id}/weeks/${week.weekId}`}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-4">
+            <Link key={week.weekId} to={`/workers/${id}/weeks/${week.weekId}`} className="block">
+              <Card className="py-2 hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="py-1 px-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
