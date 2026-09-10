@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useWorkers } from "@/shared/api/queries";
 import { useCreateWorker, useUpdateWorker, useDeleteWorker } from "@/shared/api/mutations";
 import { Spinner } from "@/shared/components/ui/spinner";
@@ -9,6 +9,7 @@ import { Label } from "@/shared/components/ui/label";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { Pagination } from "@/shared/components/ui/pagination";
+import { parsePositiveInt, parsePageSize } from "@/shared/lib/pagination";
 import { Plus, Pencil, Trash2, BarChart3, ArrowLeft, X, Search } from "lucide-react";
 
 interface WorkerFormData {
@@ -16,16 +17,22 @@ interface WorkerFormData {
   isRegular: boolean;
 }
 
-type WorkerFilter = "all" | "regular" | "occasional";
+const WORKER_FILTERS = ["all", "regular", "occasional"] as const;
+type WorkerFilter = (typeof WORKER_FILTERS)[number];
+
+const isWorkerFilter = (v: string | null): v is WorkerFilter =>
+  v !== null && (WORKER_FILTERS as readonly string[]).includes(v);
 
 const DEFAULT_PAGE_SIZE = 10;
 
 export function WorkersPage() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parsePositiveInt(searchParams.get("page"), 1);
+  const pageSize = parsePageSize(searchParams.get("pageSize"), DEFAULT_PAGE_SIZE);
+  const filterParam = searchParams.get("filter");
+  const filter: WorkerFilter = isWorkerFilter(filterParam) ? filterParam : "all";
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<WorkerFilter>("all");
 
   const isRegularParam = filter === "regular" ? true : filter === "occasional" ? false : undefined;
 
@@ -80,7 +87,11 @@ export function WorkersPage() {
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(1);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set("page", "1");
+      return next;
+    }, { replace: true });
   };
 
   return (
@@ -191,8 +202,12 @@ export function WorkersPage() {
               variant={filter === f ? "default" : "outline"}
               className="cursor-pointer"
               onClick={() => {
-                setFilter(f);
-                setPage(1);
+                setSearchParams(prev => {
+                  const next = new URLSearchParams(prev);
+                  next.set("filter", f);
+                  next.set("page", "1");
+                  return next;
+                });
               }}
             >
               {f === "all" ? "Todos" : f === "regular" ? "Fijos" : "Ocasionales"}
@@ -267,10 +282,18 @@ export function WorkersPage() {
           pageSize={data.pagination.pageSize}
           total={data.pagination.total}
           totalPages={data.pagination.totalPages}
-          onPageChange={setPage}
+          onPageChange={(p) => setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set("page", String(p));
+            return next;
+          })}
           onPageSizeChange={(size) => {
-            setPageSize(size);
-            setPage(1);
+            setSearchParams(prev => {
+              const next = new URLSearchParams(prev);
+              next.set("pageSize", String(size));
+              next.set("page", "1");
+              return next;
+            });
           }}
         />
       )}
