@@ -3,10 +3,10 @@ import { useWeekById } from "@/shared/api/queries";
 import { useDeleteWeek } from "@/shared/api/mutations";
 import { formatCurrency, formatDateShort } from "@/shared/utils/formatters";
 import { Button } from "@/shared/components/ui/button";
-import { Spinner } from "@/shared/components/ui/spinner";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { ArrowLeft, Pencil, Trash2, User } from "lucide-react";
 import { groupByWorker } from "@/shared/utils/grouping";
+import { WeekDetailSkeleton } from "./week-detail-skeleton";
 
 export function WeekDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,9 +25,7 @@ export function WeekDetailPage() {
   };
 
   if (isLoading) {
-    return (
-      <Spinner />
-    );
+    return <WeekDetailSkeleton />;
   }
 
   if (error || !week) {
@@ -53,7 +51,7 @@ export function WeekDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-1" />
           Dashboard
         </Button>
@@ -148,8 +146,8 @@ export function WeekDetailPage() {
       ))}
 
       {groups.length > 0 && (
-        <Card className="bg-primary/5">
-          <CardContent className="p-4">
+        <Card className="py-2 bg-primary/5">
+          <CardContent className="py-2 px-3">
             <div className="flex items-center justify-between text-lg font-bold">
               <span>Gran total</span>
               <span className="text-primary">{formatCurrency(grandTotal)}</span>

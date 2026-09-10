@@ -8,7 +8,6 @@ import {
   useUpdateWeek,
 } from "@/shared/api/mutations";
 import { api } from "@/shared/api/client";
-import { Spinner } from "@/shared/components/ui/spinner";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import {
@@ -24,6 +23,7 @@ import { RecordList } from "./RecordList";
 import { WeekPreview } from "./WeekPreview";
 import { SaveDayButton } from "./SaveDayButton";
 import { CapturedDaysSection } from "./CapturedDaysSection";
+import { WeekDetailSkeleton } from "./week-detail-skeleton";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { ArrowLeft } from "lucide-react";
 
@@ -169,7 +169,7 @@ export function WeekEntryPage() {
   };
 
   if (isLoading) {
-    return <Spinner />;
+    return <WeekDetailSkeleton />;
   }
 
   const selectedWeek = available.find((w) => w.id === activeWeekId);
@@ -179,7 +179,7 @@ export function WeekEntryPage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4 mr-1" />
             Dashboard
           </Button>
@@ -206,7 +206,7 @@ export function WeekEntryPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4 mr-1" />
             Dashboard
           </Button>

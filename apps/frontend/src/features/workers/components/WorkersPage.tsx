@@ -1,31 +1,34 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
+import { Plus, Pencil, Trash2, BarChart3, ArrowLeft, Search } from "lucide-react";
 import { useWorkers } from "@/shared/api/queries";
-import { useCreateWorker, useUpdateWorker, useDeleteWorker } from "@/shared/api/mutations";
-import { Spinner } from "@/shared/components/ui/spinner";
+import { useDeleteWorker } from "@/shared/api/mutations";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
 import { Badge } from "@/shared/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
+import { Card, CardContent } from "@/shared/components/ui/card";
 import { Pagination } from "@/shared/components/ui/pagination";
-import { Plus, Pencil, Trash2, BarChart3, ArrowLeft, X, Search } from "lucide-react";
+import { parsePositiveInt, parsePageSize } from "@/shared/lib/pagination";
+import { WorkerFormModal } from "./worker-form-modal";
+import { WorkerCardSkeleton } from "./worker-card-skeleton";
+import type { Worker } from "@/shared/types";
 
-interface WorkerFormData {
-  name: string;
-  isRegular: boolean;
-}
+const WORKER_FILTERS = ["all", "regular", "occasional"] as const;
+type WorkerFilter = (typeof WORKER_FILTERS)[number];
 
-type WorkerFilter = "all" | "regular" | "occasional";
+const isWorkerFilter = (v: string | null): v is WorkerFilter =>
+  v !== null && (WORKER_FILTERS as readonly string[]).includes(v);
 
 const DEFAULT_PAGE_SIZE = 10;
 
 export function WorkersPage() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parsePositiveInt(searchParams.get("page"), 1);
+  const pageSize = parsePageSize(searchParams.get("pageSize"), DEFAULT_PAGE_SIZE);
+  const filterParam = searchParams.get("filter");
+  const filter: WorkerFilter = isWorkerFilter(filterParam) ? filterParam : "all";
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<WorkerFilter>("all");
 
   const isRegularParam = filter === "regular" ? true : filter === "occasional" ? false : undefined;
 
@@ -36,37 +39,19 @@ export function WorkersPage() {
     isRegular: isRegularParam,
   });
 
-  const createWorker = useCreateWorker();
-  const updateWorker = useUpdateWorker();
   const deleteWorker = useDeleteWorker();
 
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<WorkerFormData>({
-    name: "",
-    isRegular: true,
-  });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingWorker, setEditingWorker] = useState<Worker | null>(null);
 
-  const handleSubmit = async () => {
-    if (!formData.name.trim()) return;
-    try {
-      if (editingId) {
-        await updateWorker.mutateAsync({ id: editingId, ...formData });
-        setEditingId(null);
-      } else {
-        await createWorker.mutateAsync(formData);
-      }
-      setFormData({ name: "", isRegular: true });
-      setShowForm(false);
-    } catch {
-      // handled by mutation state
-    }
+  const handleAdd = () => {
+    setEditingWorker(null);
+    setModalOpen(true);
   };
 
-  const handleEdit = (worker: { id: string; name: string; isRegular: boolean }) => {
-    setFormData({ name: worker.name, isRegular: worker.isRegular });
-    setEditingId(worker.id);
-    setShowForm(true);
+  const handleEdit = (w: Worker) => {
+    setEditingWorker(w);
+    setModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -80,7 +65,11 @@ export function WorkersPage() {
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(1);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set("page", "1");
+      return next;
+    }, { replace: true });
   };
 
   return (
@@ -99,80 +88,11 @@ export function WorkersPage() {
             Administra tus trabajadores
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingId(null);
-            setFormData({ name: "", isRegular: true });
-            setShowForm(true);
-          }}
-        >
+        <Button onClick={handleAdd}>
           <Plus className="h-4 w-4 mr-1" />
           Agregar
         </Button>
       </div>
-
-      {showForm && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">
-              {editingId ? "Editar trabajador" : "Nuevo trabajador"}
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setShowForm(false);
-                setEditingId(null);
-              }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nombre</Label>
-              <Input
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((f) => ({ ...f, name: e.target.value }))
-                }
-                placeholder="Nombre del trabajador"
-                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="text-sm">Tipo:</Label>
-              <select
-                value={formData.isRegular ? "regular" : "occasional"}
-                onChange={(e) =>
-                  setFormData((f) => ({
-                    ...f,
-                    isRegular: e.target.value === "regular",
-                  }))
-                }
-                className="border rounded px-2 py-1 text-sm"
-              >
-                <option value="regular">Fijo</option>
-                <option value="occasional">Ocasional</option>
-              </select>
-              <Button
-                size="sm"
-                onClick={handleSubmit}
-                disabled={createWorker.isPending || updateWorker.isPending}
-                className="ml-auto"
-              >
-                {editingId ? "Actualizar" : "Crear"}
-              </Button>
-            </div>
-            {(createWorker.error || updateWorker.error) && (
-              <p className="text-xs text-destructive">
-                {((createWorker.error || updateWorker.error) as Error)?.message ||
-                  "Ocurrió un error"}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
@@ -191,8 +111,12 @@ export function WorkersPage() {
               variant={filter === f ? "default" : "outline"}
               className="cursor-pointer"
               onClick={() => {
-                setFilter(f);
-                setPage(1);
+                setSearchParams(prev => {
+                  const next = new URLSearchParams(prev);
+                  next.set("filter", f);
+                  next.set("page", "1");
+                  return next;
+                });
               }}
             >
               {f === "all" ? "Todos" : f === "regular" ? "Fijos" : "Ocasionales"}
@@ -201,7 +125,13 @@ export function WorkersPage() {
         </div>
       </div>
 
-      {isLoading && <Spinner />}
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <WorkerCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-destructive">
@@ -216,10 +146,10 @@ export function WorkersPage() {
       )}
 
       {data && data.items.length > 0 && (
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {data.items.map((worker) => (
-            <Card key={worker.id}>
-              <CardContent className="p-4">
+            <Card key={worker.id} className="py-2">
+              <CardContent className="py-2 px-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="font-medium">{worker.name}</span>
@@ -267,13 +197,27 @@ export function WorkersPage() {
           pageSize={data.pagination.pageSize}
           total={data.pagination.total}
           totalPages={data.pagination.totalPages}
-          onPageChange={setPage}
+          onPageChange={(p) => setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set("page", String(p));
+            return next;
+          })}
           onPageSizeChange={(size) => {
-            setPageSize(size);
-            setPage(1);
+            setSearchParams(prev => {
+              const next = new URLSearchParams(prev);
+              next.set("pageSize", String(size));
+              next.set("page", "1");
+              return next;
+            });
           }}
         />
       )}
+
+      <WorkerFormModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        worker={editingWorker}
+      />
     </div>
   );
 }
