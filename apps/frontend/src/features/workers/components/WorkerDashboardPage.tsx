@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { useWorkerDashboard, useWorkers } from "@/shared/api/queries";
 import { usePayWorker, useGenerateInvoicePDF } from "@/shared/api/mutations";
-import { Spinner } from "@/shared/components/ui/spinner";
 import { formatCurrency } from "@/shared/utils/formatters";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
@@ -15,6 +14,7 @@ import {
   DialogFooter,
 } from "@/shared/components/ui/dialog";
 import { ArrowLeft, Calendar, DollarSign, Hash, Clock, FileText, CircleDollarSign, Check, Download } from "lucide-react";
+import { WorkerDashboardSkeleton } from "./worker-dashboard-skeleton";
 
 export function WorkerDashboardPage() {
   const { id } = useParams<{ id: string }>();
@@ -63,7 +63,7 @@ export function WorkerDashboardPage() {
 
   const worker = workers.find((w) => w.id === id);
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <WorkerDashboardSkeleton />;
 
   if (!dashboard || !worker) {
     return (

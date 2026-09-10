@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router";
 import { Plus, Pencil, Trash2, BarChart3, ArrowLeft, Search } from "lucide-react";
 import { useWorkers } from "@/shared/api/queries";
 import { useDeleteWorker } from "@/shared/api/mutations";
-import { Spinner } from "@/shared/components/ui/spinner";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
@@ -11,6 +10,7 @@ import { Card, CardContent } from "@/shared/components/ui/card";
 import { Pagination } from "@/shared/components/ui/pagination";
 import { parsePositiveInt, parsePageSize } from "@/shared/lib/pagination";
 import { WorkerFormModal } from "./worker-form-modal";
+import { WorkerCardSkeleton } from "./worker-card-skeleton";
 import type { Worker } from "@/shared/types";
 
 const WORKER_FILTERS = ["all", "regular", "occasional"] as const;
@@ -125,7 +125,13 @@ export function WorkersPage() {
         </div>
       </div>
 
-      {isLoading && <Spinner />}
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <WorkerCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-destructive">
