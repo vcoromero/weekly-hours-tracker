@@ -154,7 +154,7 @@ export function WorkerDashboardPage() {
               <Clock className="h-3 w-3" /> Total horas
             </CardTitle>
           </CardHeader>
-          <CardContent className="py-2 px-3">
+          <CardContent className="py-1.5 px-3">
             <p className="text-xl font-bold">{stats.totalHours}h</p>
           </CardContent>
         </Card>
@@ -164,7 +164,7 @@ export function WorkerDashboardPage() {
               <DollarSign className="h-3 w-3" /> Ganancias
             </CardTitle>
           </CardHeader>
-          <CardContent className="py-2 px-3">
+          <CardContent className="py-1.5 px-3">
             <p className="text-xl font-bold">
               {formatCurrency(stats.totalEarnings)}
             </p>
@@ -176,7 +176,7 @@ export function WorkerDashboardPage() {
               <Calendar className="h-3 w-3" /> Semanas
             </CardTitle>
           </CardHeader>
-          <CardContent className="py-2 px-3">
+          <CardContent className="py-1.5 px-3">
             <p className="text-xl font-bold">{stats.weeksActive}</p>
           </CardContent>
         </Card>
@@ -186,7 +186,7 @@ export function WorkerDashboardPage() {
               <Hash className="h-3 w-3" /> Prom. costo/h
             </CardTitle>
           </CardHeader>
-          <CardContent className="py-2 px-3">
+          <CardContent className="py-1.5 px-3">
             <p className="text-xl font-bold">
               {formatCurrency(stats.averageHourlyRate)}
             </p>
@@ -223,11 +223,11 @@ export function WorkerDashboardPage() {
           <p className="text-muted-foreground text-sm">Sin registros</p>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {weeks.map((week) => (
             <Link key={week.weekId} to={`/workers/${id}/weeks/${week.weekId}`}>
               <Card className="py-2 hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="py-2 px-3">
+                <CardContent className="py-1.5 px-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
