@@ -12,8 +12,8 @@ interface WeekCardProps {
 export function WeekCard({ week }: WeekCardProps) {
   return (
     <Link to={`/weeks/${week.id}`}>
-      <Card className="hover:shadow-md transition-shadow cursor-pointer">
-        <CardContent className="p-4">
+      <Card className="py-2 hover:shadow-md transition-shadow cursor-pointer">
+        <CardContent className="py-2 px-3">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2">

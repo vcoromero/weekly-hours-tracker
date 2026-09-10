@@ -10,6 +10,10 @@ export function useCreateWorker() {
       api.post<Worker>("/workers", data),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["workers"] });
+      toast.success("Trabajador creado correctamente");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al crear trabajador");
     },
   });
 }
@@ -24,6 +28,10 @@ export function useUpdateWorker() {
       api.put<Worker>(`/workers/${id}`, data),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["workers"] });
+      toast.success("Trabajador actualizado correctamente");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al actualizar trabajador");
     },
   });
 }

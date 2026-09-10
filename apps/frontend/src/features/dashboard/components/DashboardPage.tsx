@@ -1,18 +1,19 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useWeeks } from "@/shared/api/queries";
-import { Spinner } from "@/shared/components/ui/spinner";
 import { Button } from "@/shared/components/ui/button";
 import { WeekCard } from "./WeekCard";
+import { WeekCardSkeleton } from "./week-card-skeleton";
 import { Pagination } from "@/shared/components/ui/pagination";
+import { parsePositiveInt, parsePageSize } from "@/shared/lib/pagination";
 import { Plus } from "lucide-react";
 
 const DEFAULT_PAGE_SIZE = 10;
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parsePositiveInt(searchParams.get("page"), 1);
+  const pageSize = parsePageSize(searchParams.get("pageSize"), DEFAULT_PAGE_SIZE);
 
   const { data, isLoading, error } = useWeeks({ page, pageSize });
 
@@ -31,7 +32,13 @@ export function DashboardPage() {
         </Button>
       </div>
 
-      {isLoading && <Spinner />}
+      {isLoading && (
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <WeekCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
@@ -62,10 +69,18 @@ export function DashboardPage() {
           pageSize={data.pagination.pageSize}
           total={data.pagination.total}
           totalPages={data.pagination.totalPages}
-          onPageChange={setPage}
+          onPageChange={(p) => setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set("page", String(p));
+            return next;
+          })}
           onPageSizeChange={(size) => {
-            setPageSize(size);
-            setPage(1);
+            setSearchParams(prev => {
+              const next = new URLSearchParams(prev);
+              next.set("pageSize", String(size));
+              next.set("page", "1");
+              return next;
+            });
           }}
         />
       )}
