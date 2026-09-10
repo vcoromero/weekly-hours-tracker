@@ -1,8 +1,8 @@
 import { useNavigate, useSearchParams } from "react-router";
 import { useWeeks } from "@/shared/api/queries";
-import { Spinner } from "@/shared/components/ui/spinner";
 import { Button } from "@/shared/components/ui/button";
 import { WeekCard } from "./WeekCard";
+import { WeekCardSkeleton } from "./week-card-skeleton";
 import { Pagination } from "@/shared/components/ui/pagination";
 import { parsePositiveInt, parsePageSize } from "@/shared/lib/pagination";
 import { Plus } from "lucide-react";
@@ -32,7 +32,13 @@ export function DashboardPage() {
         </Button>
       </div>
 
-      {isLoading && <Spinner />}
+      {isLoading && (
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <WeekCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">

@@ -3,10 +3,10 @@ import { useWeekById } from "@/shared/api/queries";
 import { useDeleteWeek } from "@/shared/api/mutations";
 import { formatCurrency, formatDateShort } from "@/shared/utils/formatters";
 import { Button } from "@/shared/components/ui/button";
-import { Spinner } from "@/shared/components/ui/spinner";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { ArrowLeft, Pencil, Trash2, User } from "lucide-react";
 import { groupByWorker } from "@/shared/utils/grouping";
+import { WeekDetailSkeleton } from "./week-detail-skeleton";
 
 export function WeekDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,9 +25,7 @@ export function WeekDetailPage() {
   };
 
   if (isLoading) {
-    return (
-      <Spinner />
-    );
+    return <WeekDetailSkeleton />;
   }
 
   if (error || !week) {

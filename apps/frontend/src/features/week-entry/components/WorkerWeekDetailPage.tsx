@@ -3,9 +3,9 @@ import { useWorkerWeek } from "@/shared/api/queries";
 import { useDeleteWeek } from "@/shared/api/mutations";
 import { formatCurrency, formatDateShort } from "@/shared/utils/formatters";
 import { Button } from "@/shared/components/ui/button";
-import { Spinner } from "@/shared/components/ui/spinner";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { ArrowLeft, Pencil, Trash2, User } from "lucide-react";
+import { WeekDetailSkeleton } from "./week-detail-skeleton";
 
 export function WorkerWeekDetailPage() {
   const { id: workerId, weekId } = useParams<{ id: string; weekId: string }>();
@@ -24,7 +24,7 @@ export function WorkerWeekDetailPage() {
   };
 
   if (isLoading) {
-    return <Spinner />;
+    return <WeekDetailSkeleton />;
   }
 
   if (error || !week) {

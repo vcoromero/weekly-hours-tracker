@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
-import { useSearchParams, useNavigate, Link } from "react-router";
+import { useSearchParams, useNavigate } from "react-router";
 import { useWorkers, useWorkerDashboard } from "@/shared/api/queries";
 import { useGenerateInvoicePDF, usePayWorker } from "@/shared/api/mutations";
-import { Spinner } from "@/shared/components/ui/spinner";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import { formatCurrency } from "@/shared/utils/formatters";
 import { ArrowLeft, FileText, Check, CircleDollarSign } from "lucide-react";
 
@@ -85,7 +85,25 @@ export function InvoiceBuilderPage() {
     }
   };
 
-  if (loadingWorkers) return <Spinner />;
+  if (loadingWorkers) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-32" />
+        <div>
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Card>
+          <CardHeader className="pb-4">
+            <Skeleton className="h-4 w-24" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-10 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const selectedWorker = workers.find((w) => w.id === selectedWorkerId);
 
@@ -131,7 +149,21 @@ export function InvoiceBuilderPage() {
       {selectedWorkerId && (
         <>
           {loadingDashboard ? (
-            <Spinner />
+            <Card>
+              <CardHeader className="pb-4">
+                <Skeleton className="h-4 w-40" />
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border">
+                    <div className="space-y-1">
+                      <Skeleton className="h-5 w-36" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           ) : eligibleWeeks.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
