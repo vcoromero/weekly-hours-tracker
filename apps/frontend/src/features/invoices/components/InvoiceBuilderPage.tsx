@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { formatCurrency } from "@/shared/utils/formatters";
 import { ArrowLeft, FileText, Check, CircleDollarSign } from "lucide-react";
+import { useConfirmModal } from "@/shared/hooks/use-confirm-modal";
 
 export function InvoiceBuilderPage() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export function InvoiceBuilderPage() {
 
   const generatePdf = useGenerateInvoicePDF();
   const payWorker = usePayWorker();
+  const { confirm, ConfirmDialog } = useConfirmModal();
   const [selectedWeekIds, setSelectedWeekIds] = useState<string[]>([]);
 
   const eligibleWeeks = useMemo(() => {
@@ -70,10 +72,14 @@ export function InvoiceBuilderPage() {
 
   const handlePay = async () => {
     if (!selectedWorkerId || selectedWeekIds.length === 0) return;
-    const confirmed = confirm(
-      `¿Marcar ${summary.count} semana(s) como pagadas?\n\nTotal: ${formatCurrency(summary.totalAmount)}\n\nEsta acción es irreversible. No se podrán modificar los registros de estas semanas.`
-    );
-    if (!confirmed) return;
+    const ok = await confirm({
+      title: "¿Marcar semanas como pagadas?",
+      description: `Se marcarán como pagadas ${summary.count} semana(s) por un total de ${formatCurrency(summary.totalAmount)}.`,
+      variant: "default",
+      confirmText: "Marcar como pagadas",
+      cancelText: "Cancelar",
+    });
+    if (!ok) return;
     try {
       await payWorker.mutateAsync({
         workerId: selectedWorkerId,
@@ -108,6 +114,7 @@ export function InvoiceBuilderPage() {
   const selectedWorker = workers.find((w) => w.id === selectedWorkerId);
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
@@ -262,5 +269,7 @@ export function InvoiceBuilderPage() {
         </>
       )}
     </div>
+    <ConfirmDialog />
+    </>
   );
 }
