@@ -15,6 +15,7 @@ import {
 } from "@/shared/components/ui/dialog";
 import { ArrowLeft, Calendar, DollarSign, Hash, Clock, FileText, CircleDollarSign, Check, Download } from "lucide-react";
 import { WorkerDashboardSkeleton } from "./worker-dashboard-skeleton";
+import { useConfirmModal } from "@/shared/hooks/use-confirm-modal";
 
 export function WorkerDashboardPage() {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +31,7 @@ export function WorkerDashboardPage() {
 
   const payWorker = usePayWorker();
   const generatePdf = useGenerateInvoicePDF();
+  const { confirm, ConfirmDialog } = useConfirmModal();
 
   const weeks = dashboard?.weeks ?? [];
 
@@ -94,10 +96,14 @@ export function WorkerDashboardPage() {
 
   const handleConfirmPayment = async () => {
     if (!id || selectedPayWeekIds.length === 0) return;
-    const confirmed = confirm(
-      `¿Marcar ${paySummary.count} semana(s) como pagadas?\n\nTotal: ${formatCurrency(paySummary.totalAmount)}\n\nEsta acción es irreversible.`
-    );
-    if (!confirmed) return;
+    const ok = await confirm({
+      title: "¿Marcar semanas como pagadas?",
+      description: `Se marcarán como pagadas ${paySummary.count} semana(s) por un total de ${formatCurrency(paySummary.totalAmount)}.`,
+      variant: "default",
+      confirmText: "Marcar como pagadas",
+      cancelText: "Cancelar",
+    });
+    if (!ok) return;
     try {
       await payWorker.mutateAsync({ workerId: id, weekIds: selectedPayWeekIds });
       setShowPayDialog(false);
@@ -132,6 +138,7 @@ export function WorkerDashboardPage() {
   };
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
@@ -426,5 +433,7 @@ export function WorkerDashboardPage() {
         </DialogContent>
       </Dialog>
     </div>
+    <ConfirmDialog />
+    </>
   );
 }

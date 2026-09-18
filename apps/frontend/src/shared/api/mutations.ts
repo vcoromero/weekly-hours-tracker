@@ -41,7 +41,11 @@ export function useDeleteWorker() {
   return useMutation({
     mutationFn: (id: string) => api.delete(`/workers/${id}`),
     onSuccess: async () => {
+      toast.success("Trabajador eliminado");
       await qc.invalidateQueries({ queryKey: ["workers"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al eliminar trabajador");
     },
   });
 }
@@ -59,6 +63,10 @@ export function useAddRecord() {
         qc.invalidateQueries({ queryKey: ["records"] }),
         qc.invalidateQueries({ queryKey: ["workers"] }),
       ]);
+      toast.success("Registro guardado");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al guardar registro");
     },
   });
 }
@@ -75,6 +83,10 @@ export function useDeleteRecord() {
         qc.invalidateQueries({ queryKey: ["records"] }),
         qc.invalidateQueries({ queryKey: ["workers"] }),
       ]);
+      toast.success("Registro eliminado");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al eliminar registro");
     },
   });
 }
@@ -92,6 +104,10 @@ export function useSaveWeek() {
         qc.invalidateQueries({ queryKey: ["records"] }),
         qc.invalidateQueries({ queryKey: ["workers"] }),
       ]);
+      toast.success("Semana guardada");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al guardar semana");
     },
   });
 }
@@ -114,6 +130,10 @@ export function useUpdateWeek() {
         qc.invalidateQueries({ queryKey: ["records"] }),
         qc.invalidateQueries({ queryKey: ["workers"] }),
       ]);
+      toast.success("Semana actualizada");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al actualizar semana");
     },
   });
 }
@@ -128,10 +148,10 @@ export function usePayWorker() {
         qc.invalidateQueries({ queryKey: ["workers"] }),
         qc.invalidateQueries({ queryKey: ["weeks"] }),
       ]);
-      toast.success(`${data.paidWeeks} week(s) marked as paid`);
+      toast.success(`${data.paidWeeks} semana(s) marcadas como pagadas`);
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Error marking as paid");
+      toast.error(err.message || "Error al marcar como pagado");
     },
   });
 }
@@ -141,10 +161,37 @@ export function useDeleteWeek() {
   return useMutation({
     mutationFn: (id: string) => api.delete(`/weeks/${id}`),
     onSuccess: async () => {
+      toast.success("Semana eliminada");
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["weeks"] }),
         qc.invalidateQueries({ queryKey: ["weeks", "current"] }),
       ]);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al eliminar semana");
+    },
+  });
+}
+
+export function useDeleteWorkerWeekRecords() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workerId, weekId }: { workerId: string; weekId: string }) =>
+      api.delete<{ deletedCount: number }>(
+        `/workers/${workerId}/weeks/${weekId}/records`,
+      ),
+    onSuccess: async () => {
+      toast.success("Registros eliminados");
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["weeks", "current"] }),
+        qc.invalidateQueries({ queryKey: ["weeks"] }),
+        qc.invalidateQueries({ queryKey: ["weeks", "available"] }),
+        qc.invalidateQueries({ queryKey: ["records"] }),
+        qc.invalidateQueries({ queryKey: ["workers"] }),
+      ]);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al eliminar registros");
     },
   });
 }
@@ -162,6 +209,10 @@ export function useSaveDay() {
         qc.invalidateQueries({ queryKey: ["weeks"] }),
         qc.invalidateQueries({ queryKey: ["workers"] }),
       ]);
+      toast.success("Día guardado");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al guardar día");
     },
   });
 }
@@ -180,8 +231,8 @@ export function useGenerateInvoicePDF() {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: "Error generating invoice" }));
-        throw new Error(error.error || "Error generating invoice");
+        const error = await response.json().catch(() => ({ error: "Error al generar la factura" }));
+        throw new Error(error.error || "Error al generar la factura");
       }
 
       const blob = await response.blob();
@@ -197,10 +248,10 @@ export function useGenerateInvoicePDF() {
       window.URL.revokeObjectURL(url);
     },
     onSuccess: () => {
-      toast.success("Invoice PDF generated successfully");
+      toast.success("Factura generada correctamente");
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Error generating invoice");
+      toast.error(err.message || "Error al generar la factura");
     },
   });
 }

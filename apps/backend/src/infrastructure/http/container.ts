@@ -30,6 +30,7 @@ import {
   CreateRecordUseCase,
   GetRecordsByWeekUseCase,
   DeleteRecordUseCase,
+  DeleteWorkerWeekRecordsUseCase,
 } from "../../application/use-cases/records/index.js";
 
 import {
@@ -86,6 +87,7 @@ const getWorkerDashboardUseCase = new GetWorkerDashboardUseCase(recordRepo, week
 const createRecordUseCase = new CreateRecordUseCase(recordRepo, weekRepo, weekCalc);
 const getRecordsByWeekUseCase = new GetRecordsByWeekUseCase(recordRepo, weekCalc, totalsCalc);
 const deleteRecordUseCase = new DeleteRecordUseCase(recordRepo, paymentRepo);
+const deleteWorkerWeekRecordsUseCase = new DeleteWorkerWeekRecordsUseCase(recordRepo, workerRepo, weekRepo, paymentRepo);
 
 // Week use cases
 const getOrCreateCurrentWeekUseCase = new GetOrCreateCurrentWeekUseCase(weekRepo, weekCalc);
@@ -126,6 +128,7 @@ export const recordsController = createRecordsController({
   createRecord: createRecordUseCase,
   getRecordsByWeek: getRecordsByWeekUseCase,
   deleteRecord: deleteRecordUseCase,
+  deleteWorkerWeekRecords: deleteWorkerWeekRecordsUseCase,
 });
 export const weeksController = createWeeksController({
   getCurrentWeek: getCurrentWeekUseCase,
