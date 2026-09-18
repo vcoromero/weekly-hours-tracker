@@ -19,6 +19,11 @@ export interface RecordRepository {
   }): Promise<WorkRecord | null>;
   delete(id: string): Promise<void>;
   deleteByWeek(weekId: string): Promise<void>;
+  /**
+   * Deletes all records belonging to the given worker in the given week.
+   * Returns the number of records deleted (0 if none existed).
+   */
+  deleteByWorkerAndWeek(workerId: string, weekId: string): Promise<number>;
   createMany(data: Array<CreateRecordInput & { weekId: string; daySavedAt?: Date }>): Promise<void>;
   findByWeekSimple(weekId: string): Promise<WorkRecord[]>;
   markDaySaved(weekId: string, date: Date, savedAt: Date): Promise<number>;

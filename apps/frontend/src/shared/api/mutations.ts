@@ -149,6 +149,28 @@ export function useDeleteWeek() {
   });
 }
 
+export function useDeleteWorkerWeekRecords() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workerId, weekId }: { workerId: string; weekId: string }) =>
+      api.delete<{ deletedCount: number }>(
+        `/workers/${workerId}/weeks/${weekId}/records`,
+      ),
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["weeks", "current"] }),
+        qc.invalidateQueries({ queryKey: ["weeks"] }),
+        qc.invalidateQueries({ queryKey: ["weeks", "available"] }),
+        qc.invalidateQueries({ queryKey: ["records"] }),
+        qc.invalidateQueries({ queryKey: ["workers"] }),
+      ]);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al eliminar registros");
+    },
+  });
+}
+
 export function useSaveDay() {
   const qc = useQueryClient();
   return useMutation({

@@ -119,6 +119,14 @@ router.post("/records", requireAuth, validateBody(createRecordSchema), recordsCo
 router.get("/records/week/:weekId", requireAuth, validateParams(weekIdParamSchema), recordsController.getByWeek);
 router.delete("/records/:id", requireAuth, validateParams(idParamSchema), recordsController.delete);
 
+// Worker-week records (protected)
+router.delete(
+  "/workers/:workerId/weeks/:weekId/records",
+  requireAuth,
+  validateParams(workerWeekParamsSchema),
+  recordsController.deleteByWorkerAndWeek,
+);
+
 // Weeks (protected)
 router.get("/weeks", requireAuth, weeksController.list);
 router.get("/weeks/available", requireAuth, weeksController.available);
