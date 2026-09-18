@@ -11,6 +11,7 @@ import { Pagination } from "@/shared/components/ui/pagination";
 import { parsePositiveInt, parsePageSize } from "@/shared/lib/pagination";
 import { WorkerFormModal } from "./worker-form-modal";
 import { WorkerCardSkeleton } from "./worker-card-skeleton";
+import { useConfirmModal } from "@/shared/hooks/use-confirm-modal";
 import type { Worker } from "@/shared/types";
 
 const WORKER_FILTERS = ["all", "regular", "occasional"] as const;
@@ -40,6 +41,7 @@ export function WorkersPage() {
   });
 
   const deleteWorker = useDeleteWorker();
+  const { confirm, ConfirmDialog } = useConfirmModal();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingWorker, setEditingWorker] = useState<Worker | null>(null);
@@ -54,10 +56,17 @@ export function WorkersPage() {
     setModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("¿Eliminar este trabajador?")) return;
+  const handleDelete = async (worker: Worker) => {
+    const ok = await confirm({
+      title: `¿Eliminar a ${worker.name}?`,
+      description: "Se eliminarán todos los registros y pagos asociados a este trabajador. Esta acción no se puede deshacer.",
+      variant: "destructive",
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+    });
+    if (!ok) return;
     try {
-      await deleteWorker.mutateAsync(id);
+      await deleteWorker.mutateAsync(worker.id);
     } catch {
       // handled by mutation state
     }
@@ -73,6 +82,7 @@ export function WorkersPage() {
   };
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
@@ -178,7 +188,7 @@ export function WorkersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(worker.id)}
+                      onClick={() => handleDelete(worker)}
                       disabled={deleteWorker.isPending}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
@@ -218,6 +228,8 @@ export function WorkersPage() {
         onOpenChange={setModalOpen}
         worker={editingWorker}
       />
+      <ConfirmDialog />
     </div>
+    </>
   );
 }

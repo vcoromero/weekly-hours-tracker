@@ -41,7 +41,11 @@ export function useDeleteWorker() {
   return useMutation({
     mutationFn: (id: string) => api.delete(`/workers/${id}`),
     onSuccess: async () => {
+      toast.success("Trabajador eliminado");
       await qc.invalidateQueries({ queryKey: ["workers"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al eliminar trabajador");
     },
   });
 }
@@ -128,7 +132,7 @@ export function usePayWorker() {
         qc.invalidateQueries({ queryKey: ["workers"] }),
         qc.invalidateQueries({ queryKey: ["weeks"] }),
       ]);
-      toast.success(`${data.paidWeeks} week(s) marked as paid`);
+      toast.success(`${data.paidWeeks} semana(s) marcadas como pagadas`);
     },
     onError: (err: Error) => {
       toast.error(err.message || "Error marking as paid");
@@ -141,10 +145,14 @@ export function useDeleteWeek() {
   return useMutation({
     mutationFn: (id: string) => api.delete(`/weeks/${id}`),
     onSuccess: async () => {
+      toast.success("Semana eliminada");
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["weeks"] }),
         qc.invalidateQueries({ queryKey: ["weeks", "current"] }),
       ]);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al eliminar semana");
     },
   });
 }
@@ -157,6 +165,7 @@ export function useDeleteWorkerWeekRecords() {
         `/workers/${workerId}/weeks/${weekId}/records`,
       ),
     onSuccess: async () => {
+      toast.success("Registros eliminados");
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["weeks", "current"] }),
         qc.invalidateQueries({ queryKey: ["weeks"] }),
