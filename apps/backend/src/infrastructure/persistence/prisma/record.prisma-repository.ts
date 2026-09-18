@@ -78,6 +78,13 @@ export class RecordPrismaRepository implements RecordRepository {
     await this.prisma.workRecord.deleteMany({ where: { weekId } });
   }
 
+  async deleteByWorkerAndWeek(workerId: string, weekId: string): Promise<number> {
+    const { count } = await this.prisma.workRecord.deleteMany({
+      where: { workerId, weekId },
+    });
+    return count;
+  }
+
   async createMany(
     data: Array<CreateRecordInput & { weekId: string; daySavedAt?: Date }>
   ): Promise<void> {

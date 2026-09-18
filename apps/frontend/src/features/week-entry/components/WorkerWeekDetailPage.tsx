@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router";
 import { useWorkerWeek } from "@/shared/api/queries";
-import { useDeleteWeek } from "@/shared/api/mutations";
+import { useDeleteWorkerWeekRecords } from "@/shared/api/mutations";
 import { formatCurrency, formatDateShort } from "@/shared/utils/formatters";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
@@ -11,15 +11,20 @@ export function WorkerWeekDetailPage() {
   const { id: workerId, weekId } = useParams<{ id: string; weekId: string }>();
   const navigate = useNavigate();
   const { data: week, isLoading, error } = useWorkerWeek(workerId || "", weekId || "");
-  const deleteWeek = useDeleteWeek();
+  const deleteWorkerWeekRecords = useDeleteWorkerWeekRecords();
 
   const handleDelete = async () => {
-    if (!weekId || !confirm("¿Eliminar esta semana permanentemente?")) return;
+    if (
+      !workerId ||
+      !weekId ||
+      !confirm("¿Eliminar los registros de este trabajador para esta semana?")
+    )
+      return;
     try {
-      await deleteWeek.mutateAsync(weekId);
+      await deleteWorkerWeekRecords.mutateAsync({ workerId, weekId });
       navigate(`/workers/${workerId}/dashboard`);
     } catch {
-      // handled by mutation state
+      // Error feedback handled by toast in mutation onError
     }
   };
 
@@ -72,10 +77,10 @@ export function WorkerWeekDetailPage() {
                 variant="destructive"
                 size="sm"
                 onClick={handleDelete}
-                disabled={deleteWeek.isPending}
+                disabled={deleteWorkerWeekRecords.isPending}
               >
                 <Trash2 className="h-4 w-4 mr-1" />
-                {deleteWeek.isPending ? "Eliminando..." : "Eliminar"}
+                {deleteWorkerWeekRecords.isPending ? "Eliminando..." : "Eliminar"}
               </Button>
             </>
           )}
