@@ -1,6 +1,12 @@
 import { useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useCurrentWeek, useAvailableWeeks, useWeekRecords, useWeekById, useWorkers } from "@/shared/api/queries";
+import {
+  useCurrentWeek,
+  useAvailableWeeks,
+  useWeekRecords,
+  useWeekById,
+  useWorkers,
+} from "@/shared/api/queries";
 import {
   useAddRecord,
   useDeleteRecord,
@@ -23,6 +29,8 @@ import { RecordList } from "./RecordList";
 import { WeekPreview } from "./WeekPreview";
 import { SaveDayButton } from "./SaveDayButton";
 import { CapturedDaysSection } from "./CapturedDaysSection";
+import { EditDayModal } from "./EditDayModal";
+import type { EditableDayRecord } from "./EditDayModal";
 import { WeekDetailSkeleton } from "./week-detail-skeleton";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { ArrowLeft } from "lucide-react";
@@ -35,6 +43,10 @@ export function WeekEntryPage() {
   const [step, setStep] = useState<Step>("entry");
   const [previewData, setPreviewData] = useState<Week | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [editingDay, setEditingDay] = useState<{
+    date: string;
+    records: EditableDayRecord[];
+  } | null>(null);
 
   const { id: urlWeekId } = useParams<{ id: string }>();
 
@@ -48,7 +60,8 @@ export function WeekEntryPage() {
 
   const activeWeekId = selectedWeekId || currentWeek?.id || "";
 
-  const { data: activeWeek, isLoading: activeWeekLoading } = useWeekById(activeWeekId);
+  const { data: activeWeek, isLoading: activeWeekLoading } =
+    useWeekById(activeWeekId);
   const { data: existingRecords } = useWeekRecords(activeWeekId);
 
   const week = activeWeek || currentWeek;
@@ -77,7 +90,10 @@ export function WeekEntryPage() {
     async (data: CreateRecordInput) => {
       if (!activeWeekId) return;
       try {
-        const result = await addRecord.mutateAsync({ ...data, weekId: activeWeekId });
+        const result = await addRecord.mutateAsync({
+          ...data,
+          weekId: activeWeekId,
+        });
         if (result.week && result.week.id !== activeWeekId) {
           setSelectedWeekId(result.week.id);
         }
@@ -85,7 +101,7 @@ export function WeekEntryPage() {
         // handled by mutation state
       }
     },
-    [activeWeekId, addRecord]
+    [activeWeekId, addRecord],
   );
 
   const handleDeleteRecord = useCallback(
@@ -94,17 +110,28 @@ export function WeekEntryPage() {
       if (record && paidWorkerIds.has(record.workerId)) return;
       deleteRecord.mutate(recordId);
     },
-    [deleteRecord, records, paidWorkerIds]
+    [deleteRecord, records, paidWorkerIds],
+  );
+
+  const handleEditDay = useCallback(
+    (date: string, editableRecords: EditableDayRecord[]) => {
+      setEditingDay({ date, records: editableRecords });
+    },
+    [],
   );
 
   const handlePreview = async () => {
     if (!activeWeekId || records.length === 0) return;
     setSaveError(null);
 
-    const editableRecords = records.filter((r) => !paidWorkerIds.has(r.workerId));
+    const editableRecords = records.filter(
+      (r) => !paidWorkerIds.has(r.workerId),
+    );
 
     if (editableRecords.length === 0) {
-      setSaveError("No hay registros editables: todos los trabajadores de esta semana ya fueron pagados.");
+      setSaveError(
+        "No hay registros editables: todos los trabajadores de esta semana ya fueron pagados.",
+      );
       return;
     }
 
@@ -129,7 +156,11 @@ export function WeekEntryPage() {
   };
 
   const handleSave = async () => {
-    if (!activeWeekId || !previewData?.records || previewData.records.length === 0) {
+    if (
+      !activeWeekId ||
+      !previewData?.records ||
+      previewData.records.length === 0
+    ) {
       setSaveError("No hay registros para guardar");
       return;
     }
@@ -194,7 +225,10 @@ export function WeekEntryPage() {
         <WeekPreview
           week={previewData}
           onSave={handleSave}
-          onBack={() => { setSaveError(null); setStep("entry"); }}
+          onBack={() => {
+            setSaveError(null);
+            setStep("entry");
+          }}
           isSaving={saveWeek.isPending || updateWeek.isPending}
           saveLabel={isAlreadySaved ? "Actualizar semana" : "Guardar semana"}
         />
@@ -250,7 +284,8 @@ export function WeekEntryPage() {
           {addRecord.error && (
             <Alert variant="destructive" className="mt-2">
               <AlertDescription className="text-sm">
-                {(addRecord.error as Error)?.message || "Error al agregar registro"}
+                {(addRecord.error as Error)?.message ||
+                  "Error al agregar registro"}
               </AlertDescription>
             </Alert>
           )}
@@ -263,7 +298,7 @@ export function WeekEntryPage() {
             isDeleting={deleteRecord.isPending}
             readOnlyWorkerIds={isEditing ? paidWorkerIds : undefined}
             headerAction={
-              week ? (
+              week?.status === "draft" ? (
                 <SaveDayButton
                   weekId={activeWeekId}
                   unlockedRecords={unsavedRecords}
@@ -281,12 +316,37 @@ export function WeekEntryPage() {
         </Button>
       </div>
 
+      {week?.status === "saved" && (
+        <Alert className="border-primary/20 bg-primary/10">
+          <AlertDescription className="text-sm text-primary">
+            Esta semana ya está guardada. Puedes agregar o eliminar registros y
+            luego usar <strong>"Vista previa y guardar"</strong> para aplicar
+            los cambios. Los registros de trabajadores pagados no se pueden
+            modificar.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <CapturedDaysSection
         capturedRecords={savedRecords}
         onDelete={handleDeleteRecord}
         isDeleting={deleteRecord.isPending}
         readOnlyWorkerIds={isEditing ? paidWorkerIds : undefined}
+        onEditDay={handleEditDay}
       />
+
+      {editingDay && (
+        <EditDayModal
+          open={!!editingDay}
+          onOpenChange={(open) => {
+            if (!open) setEditingDay(null);
+          }}
+          weekId={activeWeekId}
+          date={editingDay.date}
+          records={editingDay.records}
+          onSuccess={() => setEditingDay(null)}
+        />
+      )}
     </div>
   );
 }

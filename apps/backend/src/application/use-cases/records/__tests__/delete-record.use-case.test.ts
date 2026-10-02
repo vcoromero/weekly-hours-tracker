@@ -42,6 +42,7 @@ describe("DeleteRecordUseCase", () => {
       findByWeekSimple: async () => [],
       markDaySaved: async () => 0,
       unmarkDaySaved: async () => 0,
+      updateMany: async () => {},
     };
 
     paymentRepo = {

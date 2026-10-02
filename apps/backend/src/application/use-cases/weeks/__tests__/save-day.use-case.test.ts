@@ -63,6 +63,7 @@ describe("SaveDayUseCase", () => {
       findByWeekSimple: async () => [],
       markDaySaved: async () => 0,
       unmarkDaySaved: async () => 0,
+      updateMany: async () => {},
     };
 
     useCase = new SaveDayUseCase(weekRepo, recordRepo);
