@@ -9,7 +9,10 @@ import {
   paymentController,
   requireAuth,
 } from "./container.js";
-import { validateBody, validateParams } from "./middleware/validate.middleware.js";
+import {
+  validateBody,
+  validateParams,
+} from "./middleware/validate.middleware.js";
 
 const router = Router();
 
@@ -60,7 +63,9 @@ const recordInputSchema = z.object({
 
 const saveWeekSchema = z.object({
   weekId: z.string().uuid(),
-  records: z.array(recordInputSchema).min(1, "Cannot save week without records"),
+  records: z
+    .array(recordInputSchema)
+    .min(1, "Cannot save week without records"),
 });
 
 const previewWeekSchema = z.object({
@@ -69,7 +74,27 @@ const previewWeekSchema = z.object({
 });
 
 const updateWeekSchema = z.object({
-  records: z.array(recordInputSchema).min(1, "Cannot save week without records"),
+  records: z
+    .array(recordInputSchema)
+    .min(1, "Cannot save week without records"),
+});
+
+const updateDayRecordSchema = z.object({
+  recordId: z.string().uuid(),
+  hours: z.number().positive(),
+  hourlyRate: z.number().positive(),
+  description: z.string().optional(),
+});
+
+const updateDaySchema = z.object({
+  records: z
+    .array(updateDayRecordSchema)
+    .min(1, "Cannot update day without records"),
+});
+
+const weekDayParamsSchema = z.object({
+  weekId: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
 // Auth
@@ -85,13 +110,49 @@ const payWorkerSchema = z.object({
 
 // Workers (protected)
 router.get("/workers", requireAuth, workersController.list);
-router.post("/workers", requireAuth, validateBody(createWorkerSchema), workersController.create);
-router.get("/workers/:id", requireAuth, validateParams(idParamSchema), workersController.getById);
-router.put("/workers/:id", requireAuth, validateParams(idParamSchema), validateBody(updateWorkerSchema), workersController.update);
-router.delete("/workers/:id", requireAuth, validateParams(idParamSchema), workersController.delete);
-router.get("/workers/:id/history", requireAuth, validateParams(idParamSchema), workersController.history);
-router.get("/workers/:id/stats", requireAuth, validateParams(idParamSchema), workersController.stats);
-router.get("/workers/:id/dashboard", requireAuth, validateParams(idParamSchema), workersController.dashboard);
+router.post(
+  "/workers",
+  requireAuth,
+  validateBody(createWorkerSchema),
+  workersController.create,
+);
+router.get(
+  "/workers/:id",
+  requireAuth,
+  validateParams(idParamSchema),
+  workersController.getById,
+);
+router.put(
+  "/workers/:id",
+  requireAuth,
+  validateParams(idParamSchema),
+  validateBody(updateWorkerSchema),
+  workersController.update,
+);
+router.delete(
+  "/workers/:id",
+  requireAuth,
+  validateParams(idParamSchema),
+  workersController.delete,
+);
+router.get(
+  "/workers/:id/history",
+  requireAuth,
+  validateParams(idParamSchema),
+  workersController.history,
+);
+router.get(
+  "/workers/:id/stats",
+  requireAuth,
+  validateParams(idParamSchema),
+  workersController.stats,
+);
+router.get(
+  "/workers/:id/dashboard",
+  requireAuth,
+  validateParams(idParamSchema),
+  workersController.dashboard,
+);
 
 // Pay worker (protected)
 router.post(
@@ -112,12 +173,32 @@ router.post(
 );
 
 // Worker-week (protected)
-router.get("/workers/:workerId/weeks/:weekId", requireAuth, validateParams(workerWeekParamsSchema), weeksController.getByWorkerAndWeek);
+router.get(
+  "/workers/:workerId/weeks/:weekId",
+  requireAuth,
+  validateParams(workerWeekParamsSchema),
+  weeksController.getByWorkerAndWeek,
+);
 
 // Records (protected)
-router.post("/records", requireAuth, validateBody(createRecordSchema), recordsController.create);
-router.get("/records/week/:weekId", requireAuth, validateParams(weekIdParamSchema), recordsController.getByWeek);
-router.delete("/records/:id", requireAuth, validateParams(idParamSchema), recordsController.delete);
+router.post(
+  "/records",
+  requireAuth,
+  validateBody(createRecordSchema),
+  recordsController.create,
+);
+router.get(
+  "/records/week/:weekId",
+  requireAuth,
+  validateParams(weekIdParamSchema),
+  recordsController.getByWeek,
+);
+router.delete(
+  "/records/:id",
+  requireAuth,
+  validateParams(idParamSchema),
+  recordsController.delete,
+);
 
 // Worker-week records (protected)
 router.delete(
@@ -131,11 +212,49 @@ router.delete(
 router.get("/weeks", requireAuth, weeksController.list);
 router.get("/weeks/available", requireAuth, weeksController.available);
 router.get("/weeks/current", requireAuth, weeksController.current);
-router.get("/weeks/:id", requireAuth, validateParams(idParamSchema), weeksController.getById);
-router.put("/weeks/:id", requireAuth, validateParams(idParamSchema), validateBody(updateWeekSchema), weeksController.update);
-router.delete("/weeks/:id", requireAuth, validateParams(idParamSchema), weeksController.delete);
-router.post("/weeks/preview", requireAuth, validateBody(previewWeekSchema), weeksController.preview);
-router.post("/weeks/save", requireAuth, validateBody(saveWeekSchema), weeksController.save);
-router.post("/weeks/:weekId/save-day", requireAuth, validateParams(weekIdParamSchema), weeksController.saveDay);
+router.get(
+  "/weeks/:id",
+  requireAuth,
+  validateParams(idParamSchema),
+  weeksController.getById,
+);
+router.put(
+  "/weeks/:id",
+  requireAuth,
+  validateParams(idParamSchema),
+  validateBody(updateWeekSchema),
+  weeksController.update,
+);
+router.delete(
+  "/weeks/:id",
+  requireAuth,
+  validateParams(idParamSchema),
+  weeksController.delete,
+);
+router.post(
+  "/weeks/preview",
+  requireAuth,
+  validateBody(previewWeekSchema),
+  weeksController.preview,
+);
+router.post(
+  "/weeks/save",
+  requireAuth,
+  validateBody(saveWeekSchema),
+  weeksController.save,
+);
+router.post(
+  "/weeks/:weekId/save-day",
+  requireAuth,
+  validateParams(weekIdParamSchema),
+  weeksController.saveDay,
+);
+router.put(
+  "/weeks/:weekId/days/:date",
+  requireAuth,
+  validateParams(weekDayParamsSchema),
+  validateBody(updateDaySchema),
+  weeksController.updateDay,
+);
 
 export default router;

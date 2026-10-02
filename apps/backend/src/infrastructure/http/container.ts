@@ -45,6 +45,7 @@ import {
   GetWeekDetailByWorkerUseCase,
   DeleteWeekUseCase,
   SaveDayUseCase,
+  UpdateDayUseCase,
 } from "../../application/use-cases/weeks/index.js";
 
 import { GenerateInvoicePdfUseCase } from "../../application/use-cases/invoices/generate-invoice-pdf.use-case.js";
@@ -79,28 +80,91 @@ const getWorkerByIdUseCase = new GetWorkerByIdUseCase(workerRepo);
 const listWorkersUseCase = new ListWorkersUseCase(workerRepo);
 const updateWorkerUseCase = new UpdateWorkerUseCase(workerRepo);
 const deleteWorkerUseCase = new DeleteWorkerUseCase(workerRepo);
-const getWorkerHistoryUseCase = new GetWorkerHistoryUseCase(recordRepo, weekCalc, totalsCalc, paymentRepo);
+const getWorkerHistoryUseCase = new GetWorkerHistoryUseCase(
+  recordRepo,
+  weekCalc,
+  totalsCalc,
+  paymentRepo,
+);
 const getWorkerStatsUseCase = new GetWorkerStatsUseCase(recordRepo, totalsCalc);
-const getWorkerDashboardUseCase = new GetWorkerDashboardUseCase(recordRepo, weekCalc, totalsCalc, getWorkerStatsUseCase, paymentRepo);
+const getWorkerDashboardUseCase = new GetWorkerDashboardUseCase(
+  recordRepo,
+  weekCalc,
+  totalsCalc,
+  getWorkerStatsUseCase,
+  paymentRepo,
+);
 
 // Record use cases
-const createRecordUseCase = new CreateRecordUseCase(recordRepo, weekRepo, weekCalc);
-const getRecordsByWeekUseCase = new GetRecordsByWeekUseCase(recordRepo, weekCalc, totalsCalc);
+const createRecordUseCase = new CreateRecordUseCase(
+  recordRepo,
+  weekRepo,
+  weekCalc,
+);
+const getRecordsByWeekUseCase = new GetRecordsByWeekUseCase(
+  recordRepo,
+  weekCalc,
+  totalsCalc,
+);
 const deleteRecordUseCase = new DeleteRecordUseCase(recordRepo, paymentRepo);
-const deleteWorkerWeekRecordsUseCase = new DeleteWorkerWeekRecordsUseCase(recordRepo, workerRepo, weekRepo, paymentRepo);
+const deleteWorkerWeekRecordsUseCase = new DeleteWorkerWeekRecordsUseCase(
+  recordRepo,
+  workerRepo,
+  weekRepo,
+  paymentRepo,
+);
 
 // Week use cases
-const getOrCreateCurrentWeekUseCase = new GetOrCreateCurrentWeekUseCase(weekRepo, weekCalc);
-const getCurrentWeekUseCase = new GetCurrentWeekUseCase(getOrCreateCurrentWeekUseCase, recordRepo, weekCalc, totalsCalc);
-const listWeeksUseCase = new ListWeeksUseCase(weekRepo, recordRepo, weekCalc, totalsCalc);
+const getOrCreateCurrentWeekUseCase = new GetOrCreateCurrentWeekUseCase(
+  weekRepo,
+  weekCalc,
+);
+const getCurrentWeekUseCase = new GetCurrentWeekUseCase(
+  getOrCreateCurrentWeekUseCase,
+  recordRepo,
+  weekCalc,
+  totalsCalc,
+);
+const listWeeksUseCase = new ListWeeksUseCase(
+  weekRepo,
+  recordRepo,
+  weekCalc,
+  totalsCalc,
+);
 const listAllWeeksUseCase = new ListAllWeeksUseCase(weekRepo, weekCalc);
-const previewWeekUseCase = new PreviewWeekUseCase(weekRepo, workerRepo, weekCalc, totalsCalc);
+const previewWeekUseCase = new PreviewWeekUseCase(
+  weekRepo,
+  workerRepo,
+  weekCalc,
+  totalsCalc,
+);
 const saveWeekUseCase = new SaveWeekUseCase(weekRepo, recordRepo, paymentRepo);
-const getWeekDetailUseCase = new GetWeekDetailUseCase(weekRepo, recordRepo, weekCalc, totalsCalc, paymentRepo);
-const updateWeekUseCase = new UpdateWeekUseCase(weekRepo, recordRepo, paymentRepo);
-const getWeekDetailByWorkerUseCase = new GetWeekDetailByWorkerUseCase(weekRepo, recordRepo, weekCalc, totalsCalc, paymentRepo);
+const getWeekDetailUseCase = new GetWeekDetailUseCase(
+  weekRepo,
+  recordRepo,
+  weekCalc,
+  totalsCalc,
+  paymentRepo,
+);
+const updateWeekUseCase = new UpdateWeekUseCase(
+  weekRepo,
+  recordRepo,
+  paymentRepo,
+);
+const getWeekDetailByWorkerUseCase = new GetWeekDetailByWorkerUseCase(
+  weekRepo,
+  recordRepo,
+  weekCalc,
+  totalsCalc,
+  paymentRepo,
+);
 const deleteWeekUseCase = new DeleteWeekUseCase(weekRepo, paymentRepo);
 const saveDayUseCase = new SaveDayUseCase(weekRepo, recordRepo);
+const updateDayUseCase = new UpdateDayUseCase(
+  recordRepo,
+  weekRepo,
+  paymentRepo,
+);
 
 // Invoice use cases
 const generateInvoicePdfUseCase = new GenerateInvoicePdfUseCase(
@@ -111,7 +175,12 @@ const generateInvoicePdfUseCase = new GenerateInvoicePdfUseCase(
 );
 
 // Payment use cases
-const payWorkerUseCase = new PayWorkerUseCase(workerRepo, weekRepo, recordRepo, paymentRepo);
+const payWorkerUseCase = new PayWorkerUseCase(
+  workerRepo,
+  weekRepo,
+  recordRepo,
+  paymentRepo,
+);
 
 export const authController = createAuthController({ login: loginUseCase });
 export const workersController = createWorkersController({
@@ -141,11 +210,14 @@ export const weeksController = createWeeksController({
   getWeekDetailByWorker: getWeekDetailByWorkerUseCase,
   deleteWeek: deleteWeekUseCase,
   saveDay: saveDayUseCase,
+  updateDay: updateDayUseCase,
 });
 export const invoiceController = createInvoiceController({
   generateInvoicePdf: generateInvoicePdfUseCase,
   invoiceService,
 });
-export const paymentController = createPaymentController({ payWorker: payWorkerUseCase });
+export const paymentController = createPaymentController({
+  payWorker: payWorkerUseCase,
+});
 
 export const requireAuth = createAuthMiddleware(verifyTokenUseCase);
