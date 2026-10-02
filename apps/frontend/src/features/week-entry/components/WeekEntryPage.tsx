@@ -29,6 +29,8 @@ import { RecordList } from "./RecordList";
 import { WeekPreview } from "./WeekPreview";
 import { SaveDayButton } from "./SaveDayButton";
 import { CapturedDaysSection } from "./CapturedDaysSection";
+import { EditDayModal } from "./EditDayModal";
+import type { EditableDayRecord } from "./EditDayModal";
 import { WeekDetailSkeleton } from "./week-detail-skeleton";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { ArrowLeft } from "lucide-react";
@@ -41,6 +43,10 @@ export function WeekEntryPage() {
   const [step, setStep] = useState<Step>("entry");
   const [previewData, setPreviewData] = useState<Week | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [editingDay, setEditingDay] = useState<{
+    date: string;
+    records: EditableDayRecord[];
+  } | null>(null);
 
   const { id: urlWeekId } = useParams<{ id: string }>();
 
@@ -105,6 +111,13 @@ export function WeekEntryPage() {
       deleteRecord.mutate(recordId);
     },
     [deleteRecord, records, paidWorkerIds],
+  );
+
+  const handleEditDay = useCallback(
+    (date: string, editableRecords: EditableDayRecord[]) => {
+      setEditingDay({ date, records: editableRecords });
+    },
+    [],
   );
 
   const handlePreview = async () => {
@@ -319,7 +332,21 @@ export function WeekEntryPage() {
         onDelete={handleDeleteRecord}
         isDeleting={deleteRecord.isPending}
         readOnlyWorkerIds={isEditing ? paidWorkerIds : undefined}
+        onEditDay={handleEditDay}
       />
+
+      {editingDay && (
+        <EditDayModal
+          open={!!editingDay}
+          onOpenChange={(open) => {
+            if (!open) setEditingDay(null);
+          }}
+          weekId={activeWeekId}
+          date={editingDay.date}
+          records={editingDay.records}
+          onSuccess={() => setEditingDay(null)}
+        />
+      )}
     </div>
   );
 }
