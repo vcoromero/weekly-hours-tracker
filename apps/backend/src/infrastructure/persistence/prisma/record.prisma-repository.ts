@@ -1,16 +1,19 @@
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import type {
   RecordRepository,
   RecordWithWorker,
 } from "../../../domain/ports/record.repository.js";
-import type { WorkRecord, CreateRecordInput } from "../../../domain/entities/work-record.entity.js";
+import type {
+  WorkRecord,
+  CreateRecordInput,
+} from "../../../domain/entities/work-record.entity.js";
 import { RecordMapper } from "../mappers/record.mapper.js";
 
 export class RecordPrismaRepository implements RecordRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(
-    data: CreateRecordInput & { weekId: string }
+    data: CreateRecordInput & { weekId: string },
   ): Promise<WorkRecord> {
     const record = await this.prisma.workRecord.create({
       data: {
@@ -78,7 +81,10 @@ export class RecordPrismaRepository implements RecordRepository {
     await this.prisma.workRecord.deleteMany({ where: { weekId } });
   }
 
-  async deleteByWorkerAndWeek(workerId: string, weekId: string): Promise<number> {
+  async deleteByWorkerAndWeek(
+    workerId: string,
+    weekId: string,
+  ): Promise<number> {
     const { count } = await this.prisma.workRecord.deleteMany({
       where: { workerId, weekId },
     });
@@ -86,7 +92,7 @@ export class RecordPrismaRepository implements RecordRepository {
   }
 
   async createMany(
-    data: Array<CreateRecordInput & { weekId: string; daySavedAt?: Date }>
+    data: Array<CreateRecordInput & { weekId: string; daySavedAt?: Date }>,
   ): Promise<void> {
     await this.prisma.workRecord.createMany({
       data: data.map((r) => ({
@@ -108,7 +114,11 @@ export class RecordPrismaRepository implements RecordRepository {
     return records.map(RecordMapper.toDomain);
   }
 
-  async markDaySaved(weekId: string, date: Date, savedAt: Date): Promise<number> {
+  async markDaySaved(
+    weekId: string,
+    date: Date,
+    savedAt: Date,
+  ): Promise<number> {
     const result = await this.prisma.workRecord.updateMany({
       where: { weekId, date, daySavedAt: null },
       data: { daySavedAt: savedAt },
@@ -116,11 +126,39 @@ export class RecordPrismaRepository implements RecordRepository {
     return result.count;
   }
 
-  async unmarkDaySaved(weekId: string, date: Date): Promise<number> {
+  async unmarkDaySaved(
+    weekId: string,
+    date: Date,
+    excludeWorkerIds: string[],
+  ): Promise<number> {
     const result = await this.prisma.workRecord.updateMany({
-      where: { weekId, date },
+      where: {
+        weekId,
+        date,
+        ...(excludeWorkerIds.length > 0
+          ? { workerId: { notIn: excludeWorkerIds } }
+          : {}),
+      },
       data: { daySavedAt: null },
     });
     return result.count;
+  }
+
+  async updateMany(
+    updates: Array<{ id: string; data: Partial<WorkRecord> }>,
+  ): Promise<void> {
+    for (const { id, data } of updates) {
+      const prismaData: Prisma.WorkRecordUpdateManyMutationInput = {
+        hours: data.hours,
+        hourlyRate: data.hourlyRate,
+        description: data.description,
+        daySavedAt: data.daySavedAt,
+      };
+
+      await this.prisma.workRecord.updateMany({
+        where: { id },
+        data: prismaData,
+      });
+    }
   }
 }

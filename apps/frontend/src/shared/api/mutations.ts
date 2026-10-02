@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "./client";
-import type { Worker, CreateRecordInput, Week } from "../types";
+import type { Worker, CreateRecordInput, Week, WorkRecord } from "../types";
 
 export function useCreateWorker() {
   const qc = useQueryClient();
@@ -24,8 +24,11 @@ export function useUpdateWorker() {
     mutationFn: ({
       id,
       ...data
-    }: { id: string; name?: string; isRegular?: boolean }) =>
-      api.put<Worker>(`/workers/${id}`, data),
+    }: {
+      id: string;
+      name?: string;
+      isRegular?: boolean;
+    }) => api.put<Worker>(`/workers/${id}`, data),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["workers"] });
       toast.success("Trabajador actualizado correctamente");
@@ -54,7 +57,17 @@ export function useAddRecord() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateRecordInput & { weekId: string }) =>
-      api.post<{ id: string; weekId: string; week?: { id: string; label: string; startDate: string; endDate: string; status: string } }>("/records", data),
+      api.post<{
+        id: string;
+        weekId: string;
+        week?: {
+          id: string;
+          label: string;
+          startDate: string;
+          endDate: string;
+          status: string;
+        };
+      }>("/records", data),
     onSuccess: async (_result) => {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["weeks", "current"] }),
@@ -141,8 +154,17 @@ export function useUpdateWeek() {
 export function usePayWorker() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ workerId, weekIds }: { workerId: string; weekIds: string[] }) =>
-      api.post<{ paidWeeks: number; totalAmount: number }>(`/workers/${workerId}/pay`, { weekIds }),
+    mutationFn: ({
+      workerId,
+      weekIds,
+    }: {
+      workerId: string;
+      weekIds: string[];
+    }) =>
+      api.post<{ paidWeeks: number; totalAmount: number }>(
+        `/workers/${workerId}/pay`,
+        { weekIds },
+      ),
     onSuccess: async (data) => {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["workers"] }),
@@ -201,7 +223,7 @@ export function useSaveDay() {
   return useMutation({
     mutationFn: (weekId: string) =>
       api.post<{ savedDate: string; recordsCount: number }>(
-        `/weeks/${weekId}/save-day`
+        `/weeks/${weekId}/save-day`,
       ),
     onSuccess: async () => {
       await Promise.all([
@@ -217,9 +239,49 @@ export function useSaveDay() {
   });
 }
 
+export interface UpdateDayRecordInput {
+  recordId: string;
+  hours: number;
+  hourlyRate: number;
+  description?: string;
+}
+
+export function useUpdateDay() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      weekId: string;
+      date: string;
+      records: UpdateDayRecordInput[];
+    }) =>
+      api.put<{
+        weekId: string;
+        date: string;
+        updatedRecords: WorkRecord[];
+      }>(`/weeks/${data.weekId}/days/${data.date}`, { records: data.records }),
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["records"] }),
+        qc.invalidateQueries({ queryKey: ["weeks"] }),
+        qc.invalidateQueries({ queryKey: ["workers"] }),
+      ]);
+      toast.success("Día actualizado correctamente");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error al actualizar el día");
+    },
+  });
+}
+
 export function useGenerateInvoicePDF() {
   return useMutation({
-    mutationFn: async ({ workerId, weekIds }: { workerId: string; weekIds: string[] }) => {
+    mutationFn: async ({
+      workerId,
+      weekIds,
+    }: {
+      workerId: string;
+      weekIds: string[];
+    }) => {
       const token = localStorage.getItem("auth_token");
       const response = await fetch(`/api/workers/${workerId}/invoice/pdf`, {
         method: "POST",
@@ -231,7 +293,9 @@ export function useGenerateInvoicePDF() {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: "Error al generar la factura" }));
+        const error = await response
+          .json()
+          .catch(() => ({ error: "Error al generar la factura" }));
         throw new Error(error.error || "Error al generar la factura");
       }
 
