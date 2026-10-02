@@ -276,17 +276,6 @@ export function WeekEntryPage() {
               </AlertDescription>
             </Alert>
           )}
-
-          {week?.status === "saved" && (
-            <Alert className="border-primary/20 bg-primary/10">
-              <AlertDescription className="text-sm text-primary">
-                Esta semana ya está guardada. Puedes agregar o eliminar
-                registros y luego usar <strong>"Vista previa y guardar"</strong>{" "}
-                para aplicar los cambios. Los registros de trabajadores pagados
-                no se pueden modificar.
-              </AlertDescription>
-            </Alert>
-          )}
         </div>
 
         <div className="md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-2">
@@ -313,6 +302,17 @@ export function WeekEntryPage() {
           Vista previa y guardar
         </Button>
       </div>
+
+      {week?.status === "saved" && (
+        <Alert className="border-primary/20 bg-primary/10">
+          <AlertDescription className="text-sm text-primary">
+            Esta semana ya está guardada. Puedes agregar o eliminar registros y
+            luego usar <strong>"Vista previa y guardar"</strong> para aplicar
+            los cambios. Los registros de trabajadores pagados no se pueden
+            modificar.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <CapturedDaysSection
         capturedRecords={savedRecords}
